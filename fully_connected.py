@@ -100,11 +100,6 @@ def fully_connected_forward(X, *, num_units, activation='relu', params, hyperpar
                             # product—(units, n_x)—thanks to numpy broadcasting
 
     A = activation_forward(Z, activation=activation)
-    #print('X:', np.sum(X))
-    #print('W' + str(l) + ':', np.sum(W))
-    #print('b' + str(l) + ':', np.sum(b))
-    #print('Z' + str(l) + ':', np.sum(Z))
-    #print('A' + str(l) + ':', np.sum(A))
 
     # update caches
     params['W' + str(l)] = W
@@ -203,9 +198,6 @@ def fully_connected_backward(X, Y_true, Y_pred, *, learning_rate, params,
 
     #dAL = - (Y_true / Y_pred) + ((1 - Y_true) / (1 - Y_pred))
     dAL = - np.divide(Y_true , Y_pred) + np.divide((1 - Y_true) , (1 - Y_pred))
-    #print('Y_true:', np.sum(Y_true))
-    #print('Y_pred:', np.sum(Y_pred))
-    #print('dAL:', np.sum(dAL))
     grads['dA' + str(num_layers)] = dAL
 
     for i in reversed(range(1, num_layers+1)):
@@ -221,21 +213,11 @@ def fully_connected_backward(X, Y_true, Y_pred, *, learning_rate, params,
             Ai_minus_1 = np.copy(X)
 
         dAi = grads['dA' + str(i)]
-        #dZi = dAi * activation_backward(dAi, activation=activation)
         dZi = activation_backward(Zi, dAi, activation=activation)
         dWi = (1 / m) * np.dot(dZi, Ai_minus_1.T)
         dbi = (1 / m) * np.sum(dZi, axis=1, keepdims=True)
 
         dAi_minus_1 = np.dot(Wi.T, dZi)
-        #if i > 1:
-        #    dAi_minus_1 = np.dot(Wi.T, dZi)
-        #else:
-        #    dAi_minus_1 = np.zeros(X.shape)
-
-        #print('dZi:', np.sum(dZi))
-        #print('dWi:', np.sum(dWi))
-        #print('dbi:', np.sum(dbi))
-        #print('dAi:', np.sum(dAi))
 
         grads['dZ' + str(i)] = dZi
         grads['dW' + str(i)] = dWi
