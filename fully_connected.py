@@ -335,8 +335,8 @@ def fully_connected_backward(X, Y_true, Y_pred, *, learning_rate, params,
     return params, hyperparams, grads
 
 
-def train(X, Y_true, params, hyperparams, grads, learning_rate, num_epochs,
-          seed=0):
+def train(X, Y_true, layers, params, hyperparams, grads, learning_rate,
+          num_epochs, seed=0):
     """
     Cue Theme from Rocky.
 
@@ -344,6 +344,10 @@ def train(X, Y_true, params, hyperparams, grads, learning_rate, num_epochs,
     ----------
     X : np.array(float)
     Y_true : np.array(float)
+    layers : list of (int, str)
+        list of layer specification where each tuple specifies
+        (number_of_units, activation_function) - TODO: currently last tuple
+        must be (1, 'sigmoid')
     params : dict of (str: np.array(float))
     hyperparams : dict of (str: int or str)
     grads : dict of (str: np.array(float))
@@ -367,16 +371,14 @@ def train(X, Y_true, params, hyperparams, grads, learning_rate, num_epochs,
     grads = {}
 
     for i in range(num_epochs):
-
-        # TODO: currently a fixed NN architecture
-        A1, params, hyperparams = fully_connected_forward(X, num_units=16,
-                                                          activation='relu',
-                                                          params=params,
-                                                          hyperparams=hyperparams)
-        Y_pred, params, hyperparams = fully_connected_forward(A1, num_units=1,
-                                                              activation='sigmoid',
-                                                              params=params,
-                                                              hyperparams=hyperparams)
+        A = np.copy(X)
+        for num_units, activation in layers:
+            A, params, hyperparams = fully_connected_forward(A,
+                                                             num_units=num_units,
+                                                             activation=activation,
+                                                             params=params,
+                                                             hyperparams=hyperparams)
+        Y_pred = np.copy(A)
         cost = binary_cost(Y_true, Y_pred)
 
         grads = fully_connected_backward(X, Y_true, Y_pred, learning_rate=learning_rate,
@@ -411,20 +413,18 @@ def predict(X_test, * params, hyperparams):
     hyperparams_temp = dict(hyperparams)
     hyperparams = {}
 
-    X = X_test
+    A = X_test
 
     for i in range(1, l+1):
         num_units = hyperparams['l' + str(i) + '_units']
         activation = hyperparams['l' + str(i) + '_activation']
-        A, params, hyperparams = fully_connected_forward(X,
+        A, params, hyperparams = fully_connected_forward(A,
                                                          num_units=num_units,
                                                          activation=activation,
                                                          params=params,
                                                          hyperparams=hyperparams)
-        X = np.copy(A)
 
-    # TODO: not so clear
-    Y_pred = X
+    Y_pred = A
 
     # TODO: both fixed and not elegant
     Y_pred[Y_pred <= 0.5] = 0
